@@ -1,0 +1,44 @@
+{
+    "name": "testnode-1",
+    "os_type": "dgx",
+    "kernel": "/sysroot/boot/vmlinuz-5.15.0-1063-nvidia",
+    "initrd": "/sysroot/boot/initrd.img-5.15.0-1063-nvidia",
+    "kernel_arguments": "rw console=tty0 console=ttyS0,115200n8 rw crash=auto",
+    "provisioning_status": "sync",
+    "config_timestamp": "1751853631",
+    "dns_servers": ["8.8.8.8", "8.8.4.4"],
+    "ssh_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSjJRlKjFqsI2rvwALVeszFZodLSF8/m1Sg2iHRzZfIAFegQ0XAk9gpXJoiyK7BpJxB7ySGcwdLzDugbDl+RKcU9tO3PEIcyWoQ8S5nxnAWGZvsbqtKHCRrO27vNHrpbQdvDy2", 
+    "interfaces": {
+        "ens3": {
+            "ipv4": "10.0.2.15",
+            "netmask": "255.255.255.0",
+            "gateway": "10.0.2.2",
+            "mac": "52:54:00:12:34:56",
+            "routes": [
+                {
+                    "default": false,
+                    "ip_or_range": "192.168.0.0/24"
+                }
+            ]
+        },
+        "ens4": {
+            "ipv4": "10.0.2.16",
+            "netmask": "255.255.255.0",
+            "gateway": "10.0.2.2",
+            "mac": "52:54:00:12:34:57",
+            "routes": [
+                {
+                    "default": false,
+                    "ip_or_range": "192.169.0.0/24"
+                }
+            ]
+        }
+    },
+    "systemd": {
+        "enable": [],
+        "disable": ["nvidia-persistenced.service", "slurmd.service", "shorewall.service", 
+            "shorewall6.service", "slurmrestd.service",
+            "systemd-journal-upload.service"
+        ]
+    }
+}

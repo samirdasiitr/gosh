@@ -1,0 +1,55 @@
+{
+  "ignition": {
+    "version": "3.5.0"
+  },
+  "storage": {
+    "skipWaitForDevices": true,
+    "disks": [
+      {
+        "device": "/dev/vda",
+        "wipeTable": true,
+        "partitions": [
+          {
+            "label": "raid",
+            "number": 1,
+            "sizeMiB": 0,
+            "typeGuid": "a19d880f-05fc-4d3b-a006-743f0f84911e"
+          }
+        ]
+      },
+      {
+        "device": "/dev/vdb",
+        "wipeTable": true,
+        "partitions": [
+          {
+            "label": "raid",
+            "number": 1,
+            "sizeMiB": 0,
+            "typeGuid": "a19d880f-05fc-4d3b-a006-743f0f84911e"
+          }
+        ]
+      }
+    ],
+    "raid": [
+      {
+        "name": "md0",
+        "level": "raid1",
+        "devices": [
+          "/dev/vda1",
+          "/dev/vdb1"
+        ],
+        "wipeArray": true
+      }
+    ],
+    "filesystems": [
+      {
+        "device": "/dev/md/md0",
+        "format": "ext4",
+        "wipeFilesystem": true,
+        "label": "ROOT",
+        "path": "/",
+        "uuid": "0fc63daf-8483-4772-8e79-3d69d8477de4"
+      }
+    ]
+  }
+}

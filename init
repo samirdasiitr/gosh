@@ -1,0 +1,90 @@
+#!/bin/bash
+# init.sh - Custom init script for Buildroot initrd
+# This script is the first process (PID 1) executed by the kernel within the initramfs.
+# It performs essential system setup, mounts necessary filesystems, loads kernel modules,
+# probes for boot devices, and configures networking before handing over control
+# to the main system.
+
+# --- Global Variables and Configuration ---
+
+# Extend the PATH for commonly used binaries within the initramfs environment.
+export PATH=$PATH:/usr/bin:/usr/sbin:/bin:/usr/local/bin
+
+## setup_initial_filesystems
+# Description: Mounts essential pseudo-filesystems required by the kernel and user space.
+#              These include /proc for process information and /sys for device information.
+# Arguments: None
+# Returns: 0 on success, non-zero on failure.
+setup_initial_filesystems() {
+    echo "Mounting /proc and /sys..."
+    mount -t proc none /proc || { echo "Error: Failed to mount /proc."; return 1; }
+    mount -t sysfs none /sys || { echo "Error: Failed to mount /sys."; return 1; }
+    return 0
+}
+
+## load_kernel_modules
+# Description: Loads necessary kernel modules for hardware detection and functionality.
+#              Modules are crucial for storage, network, and input devices.
+# Arguments: None
+# Returns: 0 on success.
+load_kernel_modules() {
+    echo "Loading essential kernel modules..."
+
+    # USB human interface devices (keyboards, mice)
+    modprobe usbhid || echo "Warning: usbhid module not found or failed to load."
+
+    # USB Host Controller Interface modules (for USB 2.0 and 3.0)
+    modprobe ehci-hcd || echo "Warning: ehci-hcd module not found or failed to load."
+    modprobe xhci-hcd || echo "Warning: xhci-hcd module not found or failed to load."
+
+    # VirtIO modules for virtualized environments (e.g., KVM, QEMU)
+    modprobe virtio || echo "Warning: virtio module not found or failed to load."
+    modprobe virtio_pci || echo "Warning: virtio_pci module not found or failed to load."
+    modprobe virtio_blk || echo "Warning: virtio_blk module not found or failed to load."
+    modprobe virtio_net || echo "Warning: virtio_net module not found or failed to load."
+    modprobe virtio_scsi || echo "Warning: virtio_scsi module not found or failed to load."
+    modprobe virtio_ring || echo "Warning: virtio_ring module not found or failed to load."
+
+    # Mellanox ConnectX modules (for high-performance networking/storage)
+    modprobe mlx5_core || echo "Warning: mlx5_core module not found or failed to load."
+    modprobe mlx5_en || echo "Warning: mlx5_en module not found or failed to load."
+    modprobe mlx5_ib || echo "Warning: mlx5_ib module not found or failed to load."
+    modprobe mlx5_eswitch || echo "Warning: mlx5_eswitch module not found or failed to load."
+
+    # NVMe (Non-Volatile Memory Express) modules for high-speed SSDs
+    modprobe nvme || echo "Warning: nvme module not found or failed to load."
+    modprobe nvme_core || echo "Warning: nvme_core module not found or failed to load."
+    modprobe nvme_pci || echo "Warning: nvme_pci module not found or failed to load."
+
+    # List currently loaded modules for debugging purposes.
+    lsmod
+}
+
+## create_dev_nodes
+# Description: Populates the /dev directory with device nodes using mdev, BusyBox's
+#              simple udev replacement. This is essential for the system to interact
+#              with hardware devices.
+# Arguments: None
+# Returns: 0 on success, non-zero on failure.
+create_dev_nodes() {
+    echo "Creating /dev entries with mdev..."
+    mount -t devtmpfs devtmpfs /dev || { echo "Error: Failed to mount devtmpfs on /dev."; return 1; }
+    /bin/mdev -s || { echo "Error: mdev failed to create device nodes."; return 1; }
+    ls -altr /dev/
+    return 0
+}
+
+# --- Main Script Execution Flow ---
+
+echo "--- Starting Initramfs Script ---"
+
+# Step 1: Set up initial pseudo-filesystems.
+setup_initial_filesystems || exec bash # If essential setup fails, drop to shell for debugging.
+
+# Step 2: Load kernel modules.
+load_kernel_modules
+
+# Step 3: Create device nodes.
+create_dev_nodes || exec bash # If device node creation fails, drop to shell.
+
+/usr/bin/python3 /init.py
